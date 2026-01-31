@@ -14,7 +14,7 @@ A specialized Node.js library that provides an API for obtaining movie and TV sh
 ## Installation
 
 ```bash
-npm install flixhq-api
+npm i @sn5u/flixhq-api
 
 ```
 
