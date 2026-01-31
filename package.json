@@ -1,5 +1,5 @@
 {
-  "name": "@staticsenju/flixhq-api",
+  "name": "@sn5u/flixhq-api",
   "version": "1.0.0",
   "description": "A robust Node.js API for scraping movies, TV shows, and streaming sources from FlixHQ.",
   "main": "index.js",
