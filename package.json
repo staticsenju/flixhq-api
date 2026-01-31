@@ -1,10 +1,17 @@
 {
-  "name": "flixhq-api",
+  "name": "@staticsenju/flixhq-api",
   "version": "1.0.0",
   "description": "A robust Node.js API for scraping movies, TV shows, and streaming sources from FlixHQ.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/staticsenju/flixhq-api.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "keywords": [
     "flixhq",
