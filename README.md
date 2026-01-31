@@ -2,6 +2,9 @@
 
 A specialized Node.js library that provides an API for obtaining movie and TV show information, including metadata, seasons, episodes, and streaming sources from FlixHQ.
 
+[![npm version](https://img.shields.io/npm/v/@sn5u/flixhq-api.svg)](https://www.npmjs.com/package/@sn5u/flixhq-api)
+![NPM Downloads](https://img.shields.io/npm/dt/@sn5u/flixhq-api)
+
 ## Features
 
 - **Home Data**: Fetch trending movies, TV shows, and latest releases.
