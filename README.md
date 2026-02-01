@@ -181,7 +181,7 @@ const servers = await flixhq.getServers("67890", "tv"); //id of episode returned
 Extracts the streaming link (m3u8) for a specific server ID.
 
 ```javascript
-const source = await flixhq.fetchSource("54321"); / sourceID of getServers(contentId, type)
+const source = await flixhq.fetchSource("54321"); // sourceID of getServers(contentId, type)
 /* Returns:
 {
   source: "https://.../master.m3u8",
