@@ -1,6 +1,6 @@
 {
   "name": "flixhq-api",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A robust Node.js API for scraping movies, TV shows, and streaming sources from FlixHQ.",
   "main": "index.js",
   "scripts": {
