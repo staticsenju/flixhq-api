@@ -97,18 +97,58 @@ class FlixHQ {
     } catch (e) { return []; }
   }
 
-  async fetchFilters() {
+async fetchFilters() {
+    const countryMap = {
+      "AR": "Argentina", "AU": "Australia", "AT": "Austria", "BE": "Belgium",
+      "BR": "Brazil", "CA": "Canada", "CN": "China", "CZ": "Czech Republic",
+      "DK": "Denmark", "FI": "Finland", "FR": "France", "DE": "Germany",
+      "HK": "Hong Kong", "HU": "Hungary", "IN": "India", "IE": "Ireland",
+      "IL": "Israel", "IT": "Italy", "JP": "Japan", "LU": "Luxembourg",
+      "MX": "Mexico", "NL": "Netherlands", "NZ": "New Zealand", "NO": "Norway",
+      "PL": "Poland", "RO": "Romania", "RU": "Russia", "ZA": "South Africa",
+      "KR": "South Korea", "ES": "Spain", "SE": "Sweden", "CH": "Switzerland",
+      "TW": "Taiwan", "TH": "Thailand", "GB": "United Kingdom", "US": "United States"
+    };
+
     try {
-      const { data } = await axios.get(`${this.baseUrl}/movie`, { headers: this.headers });
-      const $ = cheerio.load(data);
+      const [genreRes, countryRes] = await Promise.allSettled([
+        axios.get(`${this.baseUrl}/sitemap-genre.xml`, { headers: this.headers }),
+        axios.get(`${this.baseUrl}/sitemap-country.xml`, { headers: this.headers })
+      ]);
+
       const genres = [];
-      $('.genre-ids').each((_, el) => genres.push({ id: $(el).val(), name: $(el).next('label').text().trim() }));
+      if (genreRes.status === 'fulfilled') {
+        const $ = cheerio.load(genreRes.value.data, { xmlMode: true });
+        $('loc').each((_, el) => {
+          const url = $(el).text().trim();
+          const id = url.split('/').pop();
+          const name = id.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          if (id) genres.push({ id, name });
+        });
+      }
+
       const countries = [];
-      $('.country-ids').each((_, el) => countries.push({ id: $(el).val(), name: $(el).next('label').text().trim() }));
-      const years = [];
-      $('input[name="release_year"]').each((_, el) => { if ($(el).val() !== 'all') years.push($(el).val()); });
-      return { genres, countries, years, qualities: ['HD', 'SD', 'CAM'] };
-    } catch (e) { return {}; }
+      if (countryRes.status === 'fulfilled') {
+        const $ = cheerio.load(countryRes.value.data, { xmlMode: true });
+        $('loc').each((_, el) => {
+          const url = $(el).text().trim();
+          const id = url.split('/').pop();
+          const name = countryMap[id] || id;
+          if (id) countries.push({ id, name });
+        });
+      }
+
+      return {
+        genres,
+        countries,
+        years: ["2026", "2025", "2024", "2023", "2022", "older-2022"],
+        qualities: ['HD', 'SD', 'CAM']
+      };
+
+    } catch (e) {
+      console.error(e);
+      return {};
+    }
   }
 
   async fetchGenres() { const f = await this.fetchFilters(); return f.genres || []; }
