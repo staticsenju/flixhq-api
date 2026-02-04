@@ -10,6 +10,7 @@ class FlixHQ {
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
       'X-Requested-With': 'XMLHttpRequest'
     };
+    this.statsCache = { data: null, lastUpdated: 0 };
   }
 
   _parseGrid($) {
@@ -97,7 +98,7 @@ class FlixHQ {
     } catch (e) { return []; }
   }
 
-async fetchFilters() {
+  async fetchFilters() {
     const countryMap = {
       "AR": "Argentina", "AU": "Australia", "AT": "Austria", "BE": "Belgium",
       "BR": "Brazil", "CA": "Canada", "CN": "China", "CZ": "Czech Republic",
@@ -146,13 +147,70 @@ async fetchFilters() {
       };
 
     } catch (e) {
-      console.error(e);
       return {};
     }
   }
 
   async fetchGenres() { const f = await this.fetchFilters(); return f.genres || []; }
   async fetchCountries() { const f = await this.fetchFilters(); return f.countries || []; }
+
+  async fetchStats() {
+    try {
+      const CACHE_DURATION = 6 * 60 * 60 * 1000;
+      if (this.statsCache && this.statsCache.data && (Date.now() - this.statsCache.lastUpdated < CACHE_DURATION)) {
+        return this.statsCache.data;
+      }
+
+      const { data } = await axios.get(`${this.baseUrl}/sitemap.xml`, { headers: this.headers });
+      const $ = cheerio.load(data, { xmlMode: true });
+      const sitemaps = [];
+      
+      $('loc').each((_, el) => {
+        const url = $(el).text().trim();
+        if (url.includes('sitemap-list')) sitemaps.push(url);
+      });
+
+      const countSitemap = async (url) => {
+        try {
+          const { data } = await axios.get(url, { headers: this.headers });
+          const $xml = cheerio.load(data, { xmlMode: true });
+          let m = 0, t = 0;
+          $xml('loc').each((_, el) => {
+            const link = $xml(el).text();
+            if (link.includes('/movie/')) m++;
+            else if (link.includes('/tv/')) t++;
+          });
+          return { m, t };
+        } catch (e) { return { m: 0, t: 0 }; }
+      };
+
+      let totalMovies = 0;
+      let totalTV = 0;
+      const BATCH_SIZE = 5;
+
+      for (let i = 0; i < sitemaps.length; i += BATCH_SIZE) {
+        const batch = sitemaps.slice(i, i + BATCH_SIZE);
+        const results = await Promise.all(batch.map(url => countSitemap(url)));
+        results.forEach(res => {
+          totalMovies += res.m;
+          totalTV += res.t;
+        });
+      }
+
+      const result = {
+        movies: totalMovies,
+        tv: totalTV,
+        total: totalMovies + totalTV,
+        last_updated: new Date().toISOString()
+      };
+
+      this.statsCache = { data: result, lastUpdated: Date.now() };
+      return result;
+
+    } catch (e) {
+      return { error: "Failed to fetch stats" };
+    }
+  }
 
   async filter(type, value, page = 1) {
     try {
@@ -272,7 +330,6 @@ async fetchFilters() {
       };
 
     } catch (error) {
-      console.error(`[Extractor] Error: ${error.message}`);
       return null;
     }
   }
@@ -288,7 +345,6 @@ async fetchFilters() {
       return await this.extractFromEmbed(link);
 
     } catch (error) {
-      console.error(`[FlixHQ] Source Fetch Error: ${error.message}`);
       return null;
     }
   }
