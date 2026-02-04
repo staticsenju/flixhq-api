@@ -9,6 +9,7 @@ A specialized Node.js library that provides an API for obtaining movie and TV sh
 
 - **Home Data**: Fetch trending movies, TV shows, and latest releases.
 - **Search**: Advanced search functionality for movies and series.
+- **Stats**: Retrieve real-time counts of total movies and TV shows available (with auto-caching).
 - **Filters**: Filter content by type (Movie/TV), Genre, Country, and Top IMDB.
 - **Details**: Scrape full metadata including plot, year, country, and cast.
 - **Episodes**: Retrieve full season and episode lists for TV series.
@@ -46,6 +47,25 @@ Fetches data from the homepage, including Trending Movies, Trending TV, Latest M
 ```javascript
 const home = await flixhq.fetchHome();
 console.log(home.trendingMovies);
+
+```
+
+#### `fetchStats()`
+
+Fetches the total count of movies and TV shows available on the platform.
+
+* **Note:** This method includes a **6-hour cache** to prevent rate-limiting and improve performance.
+
+```javascript
+const stats = await flixhq.fetchStats();
+/* Returns:
+{
+  movies: 49748,
+  tv: 17223,
+  total: 66971,
+  last_updated: "2026-02-04T02:15:37.304Z"
+}
+*/
 
 ```
 
@@ -186,6 +206,7 @@ const source = await flixhq.fetchSource("54321"); // sourceID of getServers(cont
 {
   source: "https://.../master.m3u8",
   type: "hls",
+  tracks: [],
   encrypted: false
 }
 */
